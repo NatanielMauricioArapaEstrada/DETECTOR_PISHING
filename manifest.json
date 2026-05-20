@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Detector de Phishing (Fase 1)",
+  "version": "1.0",
+  "description": "Analizador léxico con Expresiones Regulares",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}

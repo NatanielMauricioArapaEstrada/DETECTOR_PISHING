@@ -35,6 +35,15 @@ const matchesAccion = textoPagina.match(patronAccion) || [];
 const matchesCamuflaje = textoPagina.match(patronCamuflaje) || [];
 const matchesArchivos = textoPagina.match(patronArchivos) || [];
 
+
+// Mostrar en consola qué palabras exactas detonaron las alertas
+console.log("🚨 Detalle del análisis léxico:");
+console.log("- Urgencia/Miedo:", matchesUrgencia);
+console.log("- Avaricia/Finanzas:", matchesAvaricia);
+console.log("- Acción Peligrosa:", matchesAccion);
+console.log("- Camuflaje:", matchesCamuflaje);
+console.log("- Archivos adjuntos:", matchesArchivos);
+
 // Asignar peso a cada tipo de amenaza
 puntosRiesgo += matchesUrgencia.length * 15; // La urgencia suma 15 puntos por palabra
 puntosRiesgo += matchesAvaricia.length * 10; // La avaricia suma 10 puntos

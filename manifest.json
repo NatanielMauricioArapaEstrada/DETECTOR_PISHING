@@ -1,12 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "Detector de Phishing (Fase 1)",
-  "version": "1.0",
-  "description": "Analizador léxico con Expresiones Regulares",
+  "name": "Detector de Phishing",
+  "version": "2.0",
+  "description": "Análisis léxico con resaltado visual de amenazas en el DOM",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Detector de Phishing"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ]
 }

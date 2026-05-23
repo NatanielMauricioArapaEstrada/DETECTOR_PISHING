@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detector de Phishing</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --accent:    #0fb9b1;
+      --danger:    #fc5c65;
+      --warn:      #fed330;
+      --safe:      #26de81;
+      --orange:    #fd9644;
+      --purple:    #a55eea;
+    }
+
+    body {
+      width: 340px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+    }
+    .header-icon { font-size: 22px; line-height: 1; }
+    .header-title { font-size: 15px; font-weight: 800; letter-spacing: 0.5px; }
+    .header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── IDLE STATE ── */
+    #idle-state {
+      padding: 28px 18px;
+      text-align: center;
+    }
+    .idle-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.7; }
+    .idle-text { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+    /* ── BOTÓN ANALIZAR ── */
+    #btn-analizar {
+      display: block;
+      width: calc(100% - 36px);
+      margin: 0 18px 18px;
+      padding: 11px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    #btn-analizar:hover  { opacity: 0.85; }
+    #btn-analizar:active { transform: scale(0.98); }
+    #btn-analizar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── SCORE CARD ── */
+    #resultado { display: none; padding: 16px 18px 0; }
+
+    .score-card {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .score-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+      min-width: 64px;
+    }
+    .score-label { font-size: 15px; font-weight: 700; }
+    .score-desc  { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    .risk-alto   { color: var(--danger);  border-color: var(--danger); }
+    .risk-medio  { color: var(--warn);    border-color: var(--warn); }
+    .risk-bajo   { color: var(--safe);    border-color: var(--safe); }
+    .risk-limpio { color: var(--accent);  border-color: var(--accent); }
+
+    /* ── CATEGORÍAS ── */
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .categoria {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 7px;
+    }
+    .categoria-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .cat-nombre {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .cat-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cat-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: #ffffff12;
+      border-radius: 4px;
+      padding: 1px 7px;
+    }
+    .cat-puntos {
+      font-size: 10px;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .cat-palabras {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 5px;
+    }
+    .palabra-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      border-radius: 3px;
+      padding: 2px 6px;
+      color: #000;
+      font-weight: 700;
+    }
+    .sin-detecciones { color: var(--muted); font-size: 11px; }
+
+    /* ── FOOTER ACCIONES ── */
+    .footer-actions {
+      display: flex;
+      gap: 8px;
+      padding: 12px 18px 16px;
+    }
+    .btn-secondary {
+      flex: 1;
+      padding: 8px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── LOADING ── */
+    .loading-bar {
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--purple), var(--accent));
+      background-size: 200% 100%;
+      animation: slide 1.2s linear infinite;
+    }
+    @keyframes slide {
+      0%   { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+    #loading { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-icon">🛡️</div>
+    <div>
+      <div class="header-title">Detector de Phishing</div>
+      <div class="header-sub">v2.0 · análisis léxico</div>
+    </div>
+  </div>
+
+  <!-- LOADING BAR -->
+  <div id="loading"><div class="loading-bar"></div></div>
+
+  <!-- ESTADO INICIAL -->
+  <div id="idle-state">
+    <div class="idle-icon">🔍</div>
+    <p class="idle-text">Presiona el botón para escanear<br>el contenido de esta página.</p>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="resultado"></div>
+
+  <!-- BOTÓN PRINCIPAL -->
+  <button id="btn-analizar">⚡ Analizar Página</button>
+
+  <!-- ACCIONES SECUNDARIAS (solo visibles tras analizar) -->
+  <div class="footer-actions" id="footer-actions" style="display:none;">
+    <button class="btn-secondary" id="btn-limpiar">✕ Quitar Resaltado</button>
+    <button class="btn-secondary" id="btn-reanalizar">↺ Re-analizar</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

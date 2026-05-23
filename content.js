@@ -1,56 +1,180 @@
-// content.js
-console.log("🕵️‍♂️ Detector de Phishing inyectado en la página...");
+// content.js — Solo maneja el DOM: análisis y resaltado.
+// NO tiene interfaz propia. Recibe órdenes del popup via mensajes.
 
-// 1. EXTRAER EL TEXTO
-// La propiedad 'innerText' saca todo el texto visible de la página, ignorando los códigos HTML.
-const textoPagina = document.body.innerText;
+// ─────────────────────────────────────────────
+// DEFINICIÓN DE PATRONES (categoría, color, puntos)
+// ─────────────────────────────────────────────
+const PATRONES = {
+  urgencia: {
+    regex: /\b(urgente|inmediato|alerta|bloquead[oa]|suspendid[oa]|restringid[oa]|peligro|caducad[oa]|cancelad[oa])\b/gi,
+    label: "Urgencia",
+    color: "#fc5c65",
+    puntosPerMatch: 15
+  },
+  avaricia: {
+    regex: /\b(gratis|ganador(es)?|premio(s)?|cripto(monedas?)?|bitcoin|inversi[oó]n(es)?|d[oó]lares|dinero\sf[aá]cil|oferta(s)?)\b/gi,
+    label: "Engaño / Avaricia",
+    color: "#fd9644",
+    puntosPerMatch: 10
+  },
+  accion: {
+    regex: /\b(haz\sclic|clic\saqu[ií]|verifica(\stu\scuenta)?|actualiza(\stus\sdatos)?|inicia\ssesi[oó]n|restablece(r)?(\stu\scontrase[ñn]a)?)\b/gi,
+    label: "Llamada a Acción",
+    color: "#fed330",
+    puntosPerMatch: 25
+  },
+  camuflaje: {
+    regex: /\b[a-zA-Z]+[0-9@$!]+[a-zA-Z0-9]*\b/g,
+    label: "Texto Camuflado",
+    color: "#a55eea",
+    puntosPerMatch: 30
+  },
+  archivos: {
+    regex: /\b[\w-]+\.(exe|bat|scr|vbs|apk)\b/gi,
+    label: "Archivos Peligrosos",
+    color: "#ff4757",
+    puntosPerMatch: 40
+  }
+};
 
-// 1. PATRÓN DE URGENCIA Y MIEDO (Urgency/Threats)
-// Detecta variaciones de género (bloqueado/a) y palabras clave de pánico.
-const patronUrgencia = /\b(urgente|inmediato|alerta|bloquead[oa]|suspendid[oa]|restringid[oa]|peligro|caducad[oa]|cancelad[oa])\b/gi;
+// ─────────────────────────────────────────────
+// ANÁLISIS: recorre el texto de la página y recoge estadísticas
+// ─────────────────────────────────────────────
+function analizarPagina() {
+  const texto = document.body.innerText;
+  let puntosTotal = 0;
+  const estadisticas = {};
 
-// 2. PATRÓN DE AVARICIA Y PREMIOS (Greed/Financial)
-// Usa '?' para hacer opcionales las terminaciones en plural (premio o premios).
-const patronAvaricia = /\b(gratis|ganador(es)?|premio(s)?|cripto(monedas?)?|bitcoin|inversi[óo]n(es)?|d[óo]lares|dinero f[aá]cil|oferta(s)?)\b/gi;
+  for (const [clave, patron] of Object.entries(PATRONES)) {
+    // Resetear lastIndex para evitar bugs con regex globales
+    const regex = new RegExp(patron.regex.source, patron.regex.flags);
+    const coincidencias = texto.match(regex) || [];
+    const unicas = [...new Set(coincidencias.map(w => w.toLowerCase()))];
+    const puntos = coincidencias.length * patron.puntosPerMatch;
+    puntosTotal += puntos;
 
-// 3. PATRÓN DE ACCIÓN PELIGROSA (Phishing Call to Action)
-// Detecta frases exactas que obligan al usuario a interactuar con enlaces falsos.
-const patronAccion = /\b(haz clic|clic aqu[ií]|verifica( tu cuenta)?|actualiza( tus datos)?|inicia sesi[oó]n|restablece(r)?( tu contrase[ñn]a)?)\b/gi;
+    estadisticas[clave] = {
+      label: patron.label,
+      color: patron.color,
+      total: coincidencias.length,
+      palabras: unicas,
+      puntos
+    };
+  }
 
-// 4. PATRÓN DE CAMUFLAJE LÉXICO (Leet Speak / Ofuscación)
-// Busca palabras que empiezan con letras pero mezclan números o símbolos en el medio (ej. p4ssw0rd, b4nc0, cu3nt4).
-const patronCamuflaje = /\b[a-zA-Z]+[0-9@$!]+[a-zA-Z0-9]*\b/g;
-
-// 5. PATRÓN DE ARCHIVOS ADJUNTOS PELIGROSOS
-// Detecta menciones a extensiones de archivos que suelen contener malware.
-const patronArchivos = /\b[\w-]+\.(exe|bat|scr|vbs|apk)\b/gi;
-
-// Contadores para el Scoring
-let puntosRiesgo = 0;
-
-// Buscar coincidencias (retorna un arreglo con las palabras encontradas o null)
-const matchesUrgencia = textoPagina.match(patronUrgencia) || [];
-const matchesAvaricia = textoPagina.match(patronAvaricia) || [];
-const matchesAccion = textoPagina.match(patronAccion) || [];
-const matchesCamuflaje = textoPagina.match(patronCamuflaje) || [];
-const matchesArchivos = textoPagina.match(patronArchivos) || [];
-
-// Asignar peso a cada tipo de amenaza
-puntosRiesgo += matchesUrgencia.length * 15; // La urgencia suma 15 puntos por palabra
-puntosRiesgo += matchesAvaricia.length * 10; // La avaricia suma 10 puntos
-puntosRiesgo += matchesAccion.length * 25;   // Pedir clics suma 25 puntos (muy riesgoso)
-puntosRiesgo += matchesCamuflaje.length * 30;// Ocultar palabras es casi seguro un fraude
-puntosRiesgo += matchesArchivos.length * 40; // Archivos .exe o .apk son críticos
-
-console.log(`Puntaje total de riesgo: ${puntosRiesgo}`);
-
-// Clasificación de Riesgo
-if (puntosRiesgo >= 71) {
-    console.log("🔴 RIESGO ALTO: Posible ataque crítico de Phishing.");
-} else if (puntosRiesgo >= 31) {
-    console.log("🟡 RIESGO MEDIO: Precaución, el mensaje es dudoso.");
-} else if (puntosRiesgo > 0) {
-    console.log("🟢 RIESGO BAJO: Se encontraron coincidencias menores.");
-} else {
-    console.log("✅ Mensaje limpio.");
+  return { puntosTotal, estadisticas };
 }
+
+// ─────────────────────────────────────────────
+// RESALTADO: envuelve las palabras detectadas en <span> coloreados
+// ─────────────────────────────────────────────
+function resaltarDOM() {
+  // Primero limpiar cualquier resaltado previo
+  limpiarResaltado();
+
+  // TreeWalker: iteramos solo nodos de texto, ignorando scripts/estilos/inputs
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode(nodo) {
+        const tag = nodo.parentElement?.tagName?.toUpperCase();
+        const skip = ["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "INPUT", "CODE", "PRE"];
+        if (skip.includes(tag)) return NodeFilter.FILTER_REJECT;
+        if (nodo.parentElement?.hasAttribute("data-phishing")) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    }
+  );
+
+  // Recolectar nodos antes de modificar (modificar durante iteración rompe el walker)
+  const nodos = [];
+  while (walker.nextNode()) nodos.push(walker.currentNode);
+
+  for (const nodo of nodos) {
+    const texto = nodo.textContent;
+    if (!texto.trim()) continue;
+
+    // Recoger todas las coincidencias de todos los patrones en este nodo
+    const todasCoincidencias = [];
+    for (const patron of Object.values(PATRONES)) {
+      const regex = new RegExp(patron.regex.source, patron.regex.flags);
+      let match;
+      while ((match = regex.exec(texto)) !== null) {
+        todasCoincidencias.push({
+          inicio: match.index,
+          fin: match.index + match[0].length,
+          texto: match[0],
+          color: patron.color,
+          label: patron.label
+        });
+      }
+    }
+
+    if (todasCoincidencias.length === 0) continue;
+
+    // Ordenar por posición y eliminar solapamientos
+    todasCoincidencias.sort((a, b) => a.inicio - b.inicio);
+
+    const fragmento = document.createDocumentFragment();
+    let cursor = 0;
+
+    for (const m of todasCoincidencias) {
+      if (m.inicio < cursor) continue; // saltar solapamientos
+
+      // Texto antes de la coincidencia
+      if (m.inicio > cursor) {
+        fragmento.appendChild(document.createTextNode(texto.slice(cursor, m.inicio)));
+      }
+
+      // Span resaltado
+      const span = document.createElement("span");
+      span.setAttribute("data-phishing", m.label);
+      span.style.cssText = `
+        background-color: ${m.color};
+        color: #000;
+        border-radius: 3px;
+        padding: 1px 3px;
+        font-weight: bold;
+        cursor: help;
+        outline: 1px solid ${m.color}cc;
+      `;
+      span.title = `⚠️ ${m.label}`;
+      span.textContent = m.texto;
+      fragmento.appendChild(span);
+
+      cursor = m.fin;
+    }
+
+    // Texto restante después de la última coincidencia
+    if (cursor < texto.length) {
+      fragmento.appendChild(document.createTextNode(texto.slice(cursor)));
+    }
+
+    nodo.parentNode.replaceChild(fragmento, nodo);
+  }
+}
+
+// ─────────────────────────────────────────────
+// LIMPIEZA: elimina todos los spans de resaltado previos
+// ─────────────────────────────────────────────
+function limpiarResaltado() {
+  document.querySelectorAll("span[data-phishing]").forEach(span => {
+    span.replaceWith(document.createTextNode(span.textContent));
+  });
+}
+
+// ─────────────────────────────────────────────
+// ESCUCHA DE MENSAJES desde popup.js
+// ─────────────────────────────────────────────
+chrome.runtime.onMessage.addListener((mensaje, _sender, responder) => {
+  if (mensaje.accion === "analizar") {
+    const resultado = analizarPagina();
+    resaltarDOM();
+    responder(resultado);
+  } else if (mensaje.accion === "limpiar") {
+    limpiarResaltado();
+    responder({ ok: true });
+  }
+  return true; // necesario para respuestas asíncronas
+});

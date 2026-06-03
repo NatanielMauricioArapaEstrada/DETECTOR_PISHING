@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Entorno de Pruebas - Detector de Phishing</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; line-height: 1.6; }
+        .card { border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-top: 0; }
+        .limpio { border-left: 5px solid #26de81; }
+        .medio { border-left: 5px solid #fed330; }
+        .alto { border-left: 5px solid #fc5c65; }
+    </style>
+</head>
+<body>
+    <h1>Simulador de Mensajes (Pruebas de Caja Negra)</h1>
+
+    <div class="card alto">
+        <h2>Caso 1: Riesgo Alto (Phishing Crítico)</h2>
+        <p>¡¡¡URGENTE!!! Tu cuenta en Jala University ha sido bloqueada debido a un inicio de sesión no reconocido.</p>
+        <p>Para recuperar el acceso y restablecer tu p4ssw0rd por favor haz clic aquí en el siguiente enlace de seguridad: <a href="http://192.168.1.100"></a>http://192.168.1.100 o descarga la herramienta de recuperación en el archivo solucion.exe</p>
+    </div>
+
+    <div class="card medio">
+        <h2>Caso 2: Riesgo Medio (Spam / Avaricia)</h2>
+        <p>ERES EL GRAN GANADOR DE NUESTRA OFERTA DE PRIMAVERA.</p>
+        <p>Obtén gratis tus criptomonedas directamente en tu billetera. Es tu oportunidad de ganar dinero fácil hoy mismo.</p>
+    </div>
+
+    <div class="card limpio">
+        <h2>Caso 3: Riesgo Limpio (Texto Legítimo)</h2>
+        <p>Estimado estudiante,</p>
+        <p>Le recordamos que la presentación del informe de Sistemas y la práctica de Lenguajes Formales es el día jueves a las 10:00 AM.</p>
+        <p>Saludos cordiales.</p>
+    </div>
+</body>
+</html>

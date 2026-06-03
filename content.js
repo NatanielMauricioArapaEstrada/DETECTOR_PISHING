@@ -6,19 +6,19 @@
 // ─────────────────────────────────────────────
 const PATRONES = {
     urgencia: {
-        regex: /\b(urgente|inmediato|alerta|bloquead[oa]|suspendid[oa]|restringid[oa]|peligro|caducad[oa]|cancelad[oa])\b/gi,
+        regex: /\b(?:urgente|inmediato|alerta|bloquead[oa]|suspendid[oa]|restringid[oa]|peligro|caducad[oa]|cancelad[oa])\b/gi,
         label: "Urgencia",
         color: "#fc5c65",
         puntosPerMatch: 15
     },
     avaricia: {
-        regex: /\b(gratis|ganador(es)?|premio(s)?|cripto(monedas?)?|bitcoin|inversi[oó]n(es)?|d[oó]lares|dinero\sf[aá]cil|oferta(s)?)\b/gi,
+        regex: /\b(?:gratis|ganador(?:es)?|premio(?:s)?|cripto(?:monedas?)?|bitcoin|inversi[oó]n(?:es)?|d[oó]lares|dinero\sf[aá]cil|oferta(?:s)?)\b/gi,
         label: "Engaño / Avaricia",
         color: "#fd9644",
         puntosPerMatch: 10
     },
     accion: {
-        regex: /\b(haz\sclic|clic\saqu[ií]|verifica(\stu\scuenta)?|actualiza(\stus\sdatos)?|inicia\ssesi[oó]n|restablece(r)?(\stu\scontrase[ñn]a)?)\b/gi,
+        regex: /\b(?:haz\sclic|clic\saqu[ií]|verifica(?:\stu\scuenta)?|actualiza(?:\stus\sdatos)?|inicia\ssesi[oó]n|restablece(?:r)?(?:\stu\scontrase[ñn]a)?)\b/gi,
         label: "Llamada a Acción",
         color: "#fed330",
         puntosPerMatch: 25
@@ -93,9 +93,7 @@ function analizarPagina() {
 // RESALTADO: envuelve las palabras detectadas en <span> coloreados
 // ─────────────────────────────────────────────
 function resaltarDOM() {
-    // Primero limpiar cualquier resaltado previo
     limpiarResaltado();
-
     // TreeWalker: iteramos solo nodos de texto, ignorando scripts/estilos/inputs
     const walker = document.createTreeWalker(
         document.body,

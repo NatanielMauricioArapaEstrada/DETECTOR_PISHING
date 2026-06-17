@@ -1,9 +1,3 @@
-// content.js — Solo maneja el DOM: análisis y resaltado.
-// NO tiene interfaz propia. Recibe órdenes del popup via mensajes.
-
-// ─────────────────────────────────────────────
-// DEFINICIÓN DE PATRONES (categoría, color, puntos)
-// ─────────────────────────────────────────────
 const PATRONES = {
     urgencia: {
         regex: /\b(?:urgente|inmediato|alerta|bloquead[oa]|suspendid[oa]|restringid[oa]|peligro|caducad[oa]|cancelad[oa])\b/gi,
@@ -66,8 +60,8 @@ const PATRONES = {
 // ─────────────────────────────────────────────
 function analizarPagina() {
     const texto = document.body.innerText;
-    let puntosTotal = 0;
-    const estadisticas = {};
+    let puntosTotal = 0; // suma de todos los puntos de riesgo
+    const estadisticas = {}; // detalles de cada categoria
 
     for (const [clave, patron] of Object.entries(PATRONES)) {
         // Resetear lastIndex para evitar bugs con regex globales
@@ -94,7 +88,6 @@ function analizarPagina() {
 // ─────────────────────────────────────────────
 function resaltarDOM() {
     limpiarResaltado();
-    // TreeWalker: iteramos solo nodos de texto, ignorando scripts/estilos/inputs
     const walker = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,

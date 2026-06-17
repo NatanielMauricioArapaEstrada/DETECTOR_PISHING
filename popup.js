@@ -7,9 +7,6 @@ const CONFIG_RIESGO = {
   limpio: { min: 0,   clase: "risk-limpio", emoji: "✅", label: "LIMPIO",         desc: "Sin amenazas detectadas" }
 };
 
-// ─────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────
 function getNivelRiesgo(puntos) {
   if (puntos >= 71) return CONFIG_RIESGO.alto;
   if (puntos >= 31) return CONFIG_RIESGO.medio;
